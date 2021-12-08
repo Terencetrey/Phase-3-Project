@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react"
+import React, { useEffect, useState} from "react"
 import Card from './Card'
 import axios from 'axios'
 import './Deck.css'
@@ -6,8 +6,10 @@ import './Deck.css'
 function Deck() {
     const [deck, setDeck] = useState(null)
     const [drawn, setDrawn] = useState([])
-    const [autoDraw, setAutoDraw] = useState(false)
-    const timerRef = useRef(null)
+    const [drawn2, setDrawn2] = useState([])
+    const [gameStatus, setGameStatus] = useState("playing")
+    const [points, setPoints] = useState(0)
+    const [lives, setLives] = useState(3)
 
     //loading deck from API into state
     useEffect(() => {
@@ -25,54 +27,122 @@ function Deck() {
         async function drawCard() {
             let { deck_id } = deck
 
-            let drawRes = await axios.get(`http://deckofcardsapi.com/api/deck/${deck_id}/draw/`)
+            let drawRes = await axios.get(`http://deckofcardsapi.com/api/deck/${deck_id}/draw/?count=2`)
             //when there are no more cards left from the deck
             if (drawRes.data.remaining === 0) {
-                setAutoDraw(false)
-                alert('Error: No cards remaining!')
+                alert('No more cards remaining, so you win!')
+                setGameStatus("finished")
+            }
+            if (lives < 1){
+                alert(`Oh no, you've lost!`)
+                setGameStatus("finished")
+            } else {
+
+            
+            let card = drawRes.data.cards[0]
+            let card2 = drawRes.data.cards[1]
+            
+            if(card.value === "JACK"){
+                card.value = 11
+            } else if(card.value === "QUEEN"){
+                card.value = 12
+            } else if(card.value === "KING"){
+                card.value = 13
+            } else if(card.value === "ACE"){
+                card.value = 14
             }
 
-            const card = drawRes.data.cards[0]
+            if(card2.value === "JACK"){
+                card2.value = 11
+            } else if(card2.value === "QUEEN"){
+                card2.value = 12
+            } else if(card2.value === "KING"){
+                card2.value = 13
+            } else if(card2.value === "ACE"){
+                card2.value = 14
+            }
 
             setDrawn(d => [
                 ...d,
                 {
                     id: card.code,
                     name: card.value + 'of' + card.suit,
-                    image: card.image
+                    image: card.image,
+                    value: parseInt(card.value)
                 }
             ])
+            setDrawn2(d => [
+                ...d,
+                {
+                    id: card2.code,
+                    name: card2.value + 'of' + card2.suit,
+                    image: card2.image,
+                    value: parseInt(card2.value)
+                }
+            ])}
         }
 
-        //if autoDraw is true, automatically draw a card every second
-        if (autoDraw && !timerRef.current) {
-            timerRef.current = setInterval(async () => {
-                await drawCard()
-            }, 1000)
+
+        if (deck) {
+            drawCard()
         }
 
-        return () => {
-            clearInterval(timerRef.current)
-            timerRef.current = null
-        }
-    }, [autoDraw, setAutoDraw, deck])
 
-    const toggleAutoDraw = () => {
-        setAutoDraw(auto => !auto)
+    }, [points, lives, deck])
+
+
+    // Allows the higher/lower buttons to check whether the current player card is higher or lower than the hidden opponent's card, and awards points or takes lives based on the truthyness of that.
+    const selectHigher = () => {
+        if (drawn[drawn.length-1].value > drawn2[drawn2.length-1].value) {
+            setPoints(points + 1)
+        } else {
+            setLives(lives - 1)
+        }
     }
-
-    const cards = drawn.map(c=> (
-        <Card name={c.name} image={c.image} />
+    const selectLower = () => {
+        if (drawn[drawn.length-1].value < drawn2[drawn2.length-1].value) {
+            if (lives > 0) {
+                setPoints(points + 1)
+            }
+        } else {
+            setLives(lives - 1)
+        }
+    }
+    // Makes two "piles" of cards, one for the player and one for the opponent.
+    const card1 = drawn.map(c=> (
+        <Card name={c.name} image={c.image} key={c.id} />
+    ))
+    const card2 = drawn2.map(c=> (
+        <Card name={c.name} image={c.image} key={c.id}/>
     ))
 
     return (
         <div className="Deck">
-            {deck ? (
-                <button className="Deck-auto" onClick={toggleAutoDraw}>
-                    {autoDraw ? "Stop" : "Start" } Drawing
+            {/*Displays the higher/lower buttons only if the deck has been loaded and the game status is set to "playing"*/}
+            {deck && (gameStatus === "playing") ? 
+            (<><button className="Deck-higher" onClick={selectHigher}>
+                    Higher?
                 </button>
-            ) : null }
-            <div className="Deck-cardpile">{cards}</div>
+                <h1>?</h1>
+                <button className="Deck-lower" onClick={selectLower}>
+                    Lower?
+                </button></>)  : null }
+            {/* Shows the current score */}
+            <div className="Deck-points"> 
+                <h2>Score: {points}</h2>
+            </div>
+            {/* Shows the current lives. Shows 0 if lives are less than 1*/}
+            <div className="Deck-lives">
+                <h2>Lives: {lives < 1 ? 0 : lives}</h2>
+            </div>
+            {/* Once lives are 0 or lower, shows a button to open a form for leaderboard submission */}
+            {gameStatus === "finished" ? <button className="Deck-submitscore" onClick={console.log("click")}>Submit to Leaderboards</button> : null}
+            {/* Displays the two card piles. Card pile two shows the previous round's card or no card if on the first round. */}
+            <div className="Deck-cardpile1">{card1}</div>
+            <div className="Deck-cardpile2">
+                <h2>Previous Card</h2>
+                {card2.length > 1 ? card2[card2.length - 2] : <h1>?</h1>}
+            </div>
         </div>
     )
 }
