@@ -1,5 +1,6 @@
 .Deck {
     text-align: center;
+    position: relative;
 }
 
 .Deck-auto {
@@ -21,7 +22,18 @@
     outline: none;
 }
 
-.Deck-cardpile {
+.Deck-cardpile1 {
     margin-top: 30px;
+    position: absolute;
+    left: 15%
+}
+.Deck-cardpile2 {
+    margin-top: 30px;
+    position: absolute;
+    right: 15%
+}
+
+h2, h1, label {
+    color: white
 }
 
