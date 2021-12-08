@@ -30,10 +30,10 @@
 .Deck-cardpile2 {
     margin-top: 30px;
     position: absolute;
-    left: 55%
+    right: 15%
 }
 
-h2, h1 {
+h2, h1, label {
     color: white
 }
 

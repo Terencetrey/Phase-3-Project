@@ -10,6 +10,11 @@ function Deck() {
     const [gameStatus, setGameStatus] = useState("playing")
     const [points, setPoints] = useState(0)
     const [lives, setLives] = useState(3)
+    const [formStatus, setFormStatus] = useState(false)
+    const [formData, setFormData] = useState({
+        name: "",
+        score: 0
+    })
 
     //loading deck from API into state
     useEffect(() => {
@@ -95,6 +100,7 @@ function Deck() {
     const selectHigher = () => {
         if (drawn[drawn.length-1].value > drawn2[drawn2.length-1].value) {
             setPoints(points + 1)
+            setFormData({...formData, score: points + 1})
         } else {
             setLives(lives - 1)
         }
@@ -103,11 +109,40 @@ function Deck() {
         if (drawn[drawn.length-1].value < drawn2[drawn2.length-1].value) {
             if (lives > 0) {
                 setPoints(points + 1)
+                setFormData({...formData, score: points + 1})
             }
         } else {
             setLives(lives - 1)
         }
     }
+
+    // Shows the player a form to add in their information to submit to the leaderboards
+    const showForm = () => {
+        setFormStatus(show => !show)
+    }
+
+    const handleChange = (e) => {
+        setFormData({...formData, [e.target.name]:e.target.value})
+    }
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        window.location.reload()
+    }
+    
+    const form = (
+        <form>
+            <label>Name:</label>
+            <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+            ></input><br/>
+            <input type="submit" value="Submit and Replay!" onClick={handleSubmit}></input>
+            
+        </form>
+    )
+
     // Makes two "piles" of cards, one for the player and one for the opponent.
     const card1 = drawn.map(c=> (
         <Card name={c.name} image={c.image} key={c.id} />
@@ -118,7 +153,7 @@ function Deck() {
 
     return (
         <div className="Deck">
-            {/*Displays the higher/lower buttons only if the deck has been loaded and the game status is set to "playing"*/}
+        {/*Displays the higher/lower buttons only if the deck has been loaded and the game status is set to "playing"*/}
             {deck && (gameStatus === "playing") ? 
             (<><button className="Deck-higher" onClick={selectHigher}>
                     Higher?
@@ -127,22 +162,24 @@ function Deck() {
                 <button className="Deck-lower" onClick={selectLower}>
                     Lower?
                 </button></>)  : null }
-            {/* Shows the current score */}
+        {/* Shows the current score */}
             <div className="Deck-points"> 
                 <h2>Score: {points}</h2>
             </div>
-            {/* Shows the current lives. Shows 0 if lives are less than 1*/}
+        {/* Shows the current lives. Shows 0 if lives are less than 1*/}
             <div className="Deck-lives">
                 <h2>Lives: {lives < 1 ? 0 : lives}</h2>
             </div>
-            {/* Once lives are 0 or lower, shows a button to open a form for leaderboard submission */}
-            {gameStatus === "finished" ? <button className="Deck-submitscore" onClick={console.log("click")}>Submit to Leaderboards</button> : null}
-            {/* Displays the two card piles. Card pile two shows the previous round's card or no card if on the first round. */}
+        {/* Once lives are 0 or lower, shows a button to open a form for leaderboard submission */}
+            {gameStatus === "finished" && formStatus === false ? <button className="Deck-submitscore" onClick={showForm}>Submit to Leaderboards</button> : null}
+        {/* Displays the two card piles. Card pile two shows the previous round's card or no card if on the first round. */}
             <div className="Deck-cardpile1">{card1}</div>
             <div className="Deck-cardpile2">
                 <h2>Previous Card</h2>
                 {card2.length > 1 ? card2[card2.length - 2] : <h1>?</h1>}
             </div>
+
+            {formStatus === true ? form : null}
         </div>
     )
 }
