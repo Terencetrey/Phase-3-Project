@@ -15,6 +15,7 @@ function Deck() {
     const [restart, setRestart] = useState(false)
     const [formData, setFormData] = useState({
         name: "",
+        age: null,
         score: 0
     })
 
@@ -176,6 +177,13 @@ function Deck() {
                 type="text"
                 name="name"
                 value={formData.name}
+                onChange={handleChange}
+            ></input><br/>
+            <label>Age:</label>
+            <input
+                type="text"
+                name="age"
+                value={formData.age}
                 onChange={handleChange}
             ></input><br/>
             <input type="submit" value="Submit and Replay!" onClick={handleSubmit}></input>
