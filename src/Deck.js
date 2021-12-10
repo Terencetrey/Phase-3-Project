@@ -11,6 +11,8 @@ function Deck() {
     const [points, setPoints] = useState(0)
     const [lives, setLives] = useState(3)
     const [formStatus, setFormStatus] = useState(false)
+    const [formType, setFormType] = useState(0)
+    const [restart, setRestart] = useState(false)
     const [formData, setFormData] = useState({
         name: "",
         score: 0
@@ -115,10 +117,26 @@ function Deck() {
             setLives(lives - 1)
         }
     }
+    const selectEqual = () => {
+        if (drawn[drawn.length-1].value === drawn2[drawn2.length-1].value) {
+            if (lives > 0) {
+                setPoints(points + 3)
+                setLives(lives + 1)
+                setFormData({...formData, score: points + 3})
+            }
+        } else {
+            setLives(lives - 1)
+        }
+    }
 
     // Shows the player a form to add in their information to submit to the leaderboards
-    const showForm = () => {
+    const showForm1 = () => {
         setFormStatus(show => !show)
+        setFormType("new")
+    }
+    const showForm2 = () => {
+        setFormStatus(show => !show)
+        setFormType("returning")
     }
 
     const handleChange = (e) => {
@@ -126,20 +144,31 @@ function Deck() {
     }
     const handleSubmit = (e) => {
         e.preventDefault();
-        fetch("http://localhost:9292/players", {
-            method:"POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-        })
-        .then((res) => res.json())
-        .then(() => {
-            window.location.reload()
-  })
-       
+        if(formType === "new"){
+            fetch("http://localhost:9292/players", {
+                method:"POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            })
+        } else if(formType === "returning"){
+            fetch(`http://localhost:9292/players/${formData.name}`, {
+                method:"POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            })
+        }
+        setFormStatus(show => !show)
+        setRestart(true)
     }
     
+    const handleRestart = () => {
+        window.location.reload()
+    }
+
     const form = (
         <form>
             <label>Name:</label>
@@ -169,7 +198,11 @@ function Deck() {
             (<><button className="Deck-higher" onClick={selectHigher}>
                     Higher?
                 </button>
-                <h1>?</h1>
+                <br/>
+                <button className="Deck-split" onClick={selectEqual}>
+                    Equal?
+                </button>
+                <br/>
                 <button className="Deck-lower" onClick={selectLower}>
                     Lower?
                 </button></>)  : null }
@@ -182,15 +215,25 @@ function Deck() {
                 <h2>Lives: {lives < 1 ? 0 : lives}</h2>
             </div>
         {/* Once lives are 0 or lower, shows a button to open a form for leaderboard submission */}
-            {gameStatus === "finished" && formStatus === false ? <button className="Deck-submitscore" onClick={showForm}>Submit to Leaderboards</button> : null}
+            {gameStatus === "finished" && formStatus === false && restart === false ? 
+            <>
+            <button className="Deck-submitscore" onClick={showForm1}>Submit Score as New Player</button>
+            <br/>
+            <button className="Deck-submitscore" onClick={showForm2}>Submit Score as Returning Player</button>
+            </>
+            : null}
         {/* Displays the two card piles. Card pile two shows the previous round's card or no card if on the first round. */}
-            <div className="Deck-cardpile1">{card1}</div>
+            <div className="Deck-cardpile1">
+                <h2>Player Card</h2>
+                {card1}
+            </div>
             <div className="Deck-cardpile2">
-                <h2>Previous Card</h2>
+                <h2>Computer Card</h2>
                 {card2.length > 1 ? card2[card2.length - 2] : <h1>?</h1>}
             </div>
 
             {formStatus === true ? form : null}
+            {restart === true ? <button className="restart" onClick={handleRestart}>New Game?</button> : null}
         </div>
     )
 }
