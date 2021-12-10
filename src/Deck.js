@@ -208,7 +208,7 @@ function Deck() {
                 </button>
                 <br/>
                 <button className="Deck-split" onClick={selectEqual}>
-                    Equal?
+                    Split?
                 </button>
                 <br/>
                 <button className="Deck-lower" onClick={selectLower}>

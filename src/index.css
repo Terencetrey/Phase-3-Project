@@ -1,5 +1,14 @@
 body {
     background-color: rgb(46, 3, 3);
+
+  }
+  h2, h1{
+    font-style: italic;
+    
   }
   
   
+  h4{
+    text-align: center
+  }
+
