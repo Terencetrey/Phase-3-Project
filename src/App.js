@@ -1,64 +1,40 @@
 import React, {useState, useEffect} from 'react'
 import Deck from './Deck'
+import axios from 'axios'
 
 
 function App() {
-
-  const [players, setPlayers] = useState([])
   const [scores, setScores] = useState([])
+  const [trigger, setTrigger] =useState(0)
 
   useEffect(()=> {
   //Gets patients and clinics
-    fetch('http://localhost:9292/players')
-    .then(res => res.json())
-    .then(setPlayers)
-    
-    fetch('http://localhost:9292/scores')
+    fetch('http://localhost:9292/highscore')
     .then(res => res.json())
     .then(setScores)
-  },[])
+  },[trigger])
 
-  //Creates a Patient 
-  const postPlayer = (player) => {
-    fetch('http://localhost:9292/players',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json'
-      },
-      body: JSON.stringify(player)
-    })
-    .then(res => res.json())
-    .then(newPlayer => {
-      setPlayers([newPlayer,...players])
-    })
-  }
-//patches patient
-  const patchPlayer = (player) => {
-    fetch(`http://localhost:9292/players/${player.id}`,{
-      method:'PATCH',
-      headers:{
-        'Content-Type':'application/json'
-      },
-      body: JSON.stringify({...player})
-    })
-    .then(res => res.json())
-    .then(data => {
-      setPlayers(players.map(p => {
-        if(p.id === data.id){
-          return data
-        } else {
-          return p
-        }
-      }))
-    })
-  } 
 
+const handleDelete = () => {
+  fetch(`http://localhost:9292/scores/${scores.score_id}`,{
+    method:'DELETE',
+  })
+  .then((res) => res.json())
+  .then((data) => {
+    console.log(data)
+    setTrigger(trigger + 1)
+  })
+}
 
 
 
   return (
     <div className="App">
-      <Deck postPlayer={postPlayer} scores={scores}/>
+      <h1>High Score</h1>
+      <h2>Name:{scores.name}</h2>
+      <h2>Score:{scores.score}</h2>
+      <button className="delete" onClick={handleDelete}>Delete</button>
+      <Deck />
     </div>
   );
 }
